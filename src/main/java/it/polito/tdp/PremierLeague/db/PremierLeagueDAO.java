@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import it.polito.tdp.PremierLeague.model.Action;
 import it.polito.tdp.PremierLeague.model.Match;
 import it.polito.tdp.PremierLeague.model.Player;
@@ -36,7 +38,7 @@ public class PremierLeagueDAO {
 		}
 	}
 	
-	public List<Team> listAllTeams(){
+	public List<Team> listAllTeams(Map<Integer,Team> mappa){
 		String sql = "SELECT * FROM Teams";
 		List<Team> result = new ArrayList<Team>();
 		Connection conn = DBConnect.getConnection();
@@ -47,6 +49,7 @@ public class PremierLeagueDAO {
 			while (res.next()) {
 
 				Team team = new Team(res.getInt("TeamID"), res.getString("Name"));
+				mappa.put(team.getTeamID(), team);
 				result.add(team);
 			}
 			conn.close();
@@ -110,6 +113,54 @@ public class PremierLeagueDAO {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+   public void getPunteggioClassifica(Team t){
+		
+		String sql = "SELECT * "
+				+ "FROM matches m "
+				+ "WHERE m.TeamHomeID=? or m.TeamAwayID=? ";
+		List<Match>result = new ArrayList<Match>();
+		Connection conn = DBConnect.getConnection();
+		int punteggio = 0;
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, t.getTeamID());
+			st.setInt(2, t.getTeamID());
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				int teamHomeID = res.getInt("m.TeamHomeID");
+				int teamAwayID = res.getInt("m.TeamAwayID");
+				int resultOfTeamHome = res.getInt("m.resultOfTeamHome");
+				
+				if(teamHomeID==t.getTeamID()) {
+					if(resultOfTeamHome==0) {
+						punteggio+=1;
+					}
+					else if(resultOfTeamHome==1) {
+						punteggio+=3;
+					}
+					
+				}
+				
+				else if(teamAwayID==t.getTeamID()) {
+					if(resultOfTeamHome==0) {
+						punteggio+=1;
+					}
+					else if(resultOfTeamHome==-1) {
+						punteggio+=3;
+					}
+				}
+			}
+			conn.close();
+			t.setPuntiClassifica(punteggio);
+					
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}	
+		
 	}
 	
 }

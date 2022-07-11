@@ -5,9 +5,12 @@
 package it.polito.tdp.PremierLeague;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.PremierLeague.model.Avversario;
 import it.polito.tdp.PremierLeague.model.Model;
+import it.polito.tdp.PremierLeague.model.Team;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -35,7 +38,7 @@ public class FXMLController {
     private Button btnSimula; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbSquadra"
-    private ComboBox<?> cmbSquadra; // Value injected by FXMLLoader
+    private ComboBox<Team> cmbSquadra; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtN"
     private TextField txtN; // Value injected by FXMLLoader
@@ -48,11 +51,48 @@ public class FXMLController {
 
     @FXML
     void doClassifica(ActionEvent event) {
+    	this.txtResult.clear();
+    	
+    	Team t = this.cmbSquadra.getValue();
+    	if(t == null) {
+    		this.txtResult.appendText("Selezionare un team di interesse\n");
+    		return;
+    	}
+    	
+    	List<Avversario> worst = model.getSquadrePeggiori(t);
+    	this.txtResult.appendText("SQUADRE PEGGIORI: "+"\n");
+    	for(Avversario ai : worst) {
+    		this.txtResult.appendText(ai.toString()+"\n");
+    	}
+    	this.txtResult.appendText("\n\n");
+    	List<Avversario> best = model.getSquadreMigliori(t);
+    	this.txtResult.appendText("SQUADRE MIGLIORI: "+"\n");
+    	for(Avversario ai : best) {
+    		this.txtResult.appendText(ai.toString()+"\n");
+    	}
+    	
+    	
 
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	this.txtResult.clear();
+    	
+    	model.creaGrafo();
+    	this.txtResult.appendText("GRAFO CREATO\n");
+    	this.txtResult.appendText("#VERTICI: "+this.model.nVertici()+"\n");
+    	this.txtResult.appendText("#ARCHI: "+this.model.nArchi()+"\n");
+    	
+    	this.btnClassifica.setDisable(false);
+    	this.cmbSquadra.setDisable(false);
+    	
+    	this.btnSimula.setDisable(false);
+    	this.txtN.setDisable(false);
+    	this.txtX.setDisable(false);
+    	
+    	this.cmbSquadra.getItems().clear();
+    	this.cmbSquadra.getItems().addAll(model.getAllVertices());
 
     }
 
@@ -74,5 +114,12 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	
+    	this.btnClassifica.setDisable(true);
+    	this.cmbSquadra.setDisable(true);
+    	
+    	this.btnSimula.setDisable(true);
+    	this.txtN.setDisable(true);
+    	this.txtX.setDisable(true);
     }
 }
